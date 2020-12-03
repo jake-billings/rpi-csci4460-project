@@ -21,7 +21,14 @@ const config = {
     featureWeights: {
         pageRank: 5,
         isRPIAffiliated: 50
-    }
+    },
+
+    /**
+     * port
+     *
+     * this is the port the ExpressJS server will listen on when the server launches
+     */
+    port: 3000
 }
 
 module.exports = config
