@@ -3,17 +3,45 @@ const app = express()
 const config = require('./config')
 const bodyParser = require('body-parser')
 
-const weight_of = result => Object
+
+/**
+ * rank_of()
+ *
+ * pure function
+ *
+ * multiplies each feature value by its weight then take the sum to get an element's ranking
+ *
+ * @param features      a features object from the request specification
+ * @returns {number}    a number (floating point) representing the ranking assigned to that set of features
+ */
+const rank_of = features => Object
+    // For each key in the feature weights from the config file,
     .keys(config.featureWeights)
+    // Find the weight we get by multiplying the value in the request by the weight in the config file
     .map(key => {
-        return result[key] * config.featureWeights[key]
+        return features[key] * config.featureWeights[key]
     })
+    // Sum all of the weighted values to get the final rank
     .reduce((sum, element) => {
         return sum + element;
     })
 
+// Use the body-parser library to parse incoming JSON requests to the req.body field
 app.use(bodyParser.json())
 
+/**
+ * POST /rank
+ *
+ * route
+ *
+ * This endpoint accepts a search query and a set (represented as an array) of candidate results. The
+ * endpoint will apply a relevance-based ranking algorithm based on metadata in these results and the
+ * query string. We will return the ranked results without the metadata. This endpoint has no side
+ * effects on the ranking subcomponent, and does not make calls to any other subcomponents. We expect
+ * the query component to call this endpoint.
+ *
+ * See Team Deliverable 2 for further documentation
+ */
 app.post('/rank', (req, res) => {
     if (typeof req.body !== 'object') {
         return res.status(400).send({
@@ -65,7 +93,7 @@ app.post('/rank', (req, res) => {
     const sortedResults =
         req.body.results
             .sort((a, b) => {
-                return weight_of(b.features) - weight_of(a.features)
+                return rank_of(b.features) - rank_of(a.features)
             })
             .map((resultPair) => {
                 return resultPair.result
@@ -74,6 +102,13 @@ app.post('/rank', (req, res) => {
     res.send(sortedResults)
 })
 
+/**
+ * *
+ *
+ * route
+ *
+ * returns a 404 for all unrecognized requests
+ */
 app.use('*', (req, res) => {
     res.status(404).send({
         message: 'Sorry, that route does not resolve to an endpoint.',
