@@ -2,7 +2,10 @@ const express = require('express')
 const app = express()
 const config = require('./config')
 const bodyParser = require('body-parser')
+const morgan = require('morgan')
 
+// Add logging
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms'))
 
 /**
  * rank_of()
